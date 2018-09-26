@@ -1,5 +1,5 @@
 astropy>=2.0.2
-astroquery>=0.3.7
+git+https://github.com/astropy/astroquery.git
 numpy>=1.14.2
 pandas>=0.21.0
 flask>=0.12.2
