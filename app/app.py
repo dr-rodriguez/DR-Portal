@@ -7,7 +7,7 @@ from astropy.io import fits
 from astropy.utils.data import download_file
 from astropy.wcs import WCS
 from bokeh.palettes import Spectral4
-from astroquery.mast import Observations
+from astroquery.mast import Catalogs, Observations
 from bokeh.models import DataTable, TableColumn
 from bokeh.layouts import column, widgetbox
 
@@ -73,8 +73,6 @@ def app_catalogs():
     global trc
     global im
     if blc is None or trc is None or im is None: load_image()
-
-    from astroquery.mast import Catalogs
 
     searchString = '{} {}'.format(np.mean([blc[0], trc[0]]), np.mean([blc[1], trc[1]]))
     catalogData = Catalogs.query_object(searchString, radius=0.2, catalog="GAIAdr2")
@@ -143,7 +141,8 @@ def app_caom():
 
         data = {'x': patch_xs, 'y': patch_ys, 'obs_collection': obsDF['obs_collection'][ind],
                 'instrument_name': obsDF['instrument_name'][ind], 'obs_id': obsDF['obs_id'][ind],
-                'target_name': obsDF['target_name'][ind], 'proposal_pi': obsDF['proposal_pi'][ind]}
+                'target_name': obsDF['target_name'][ind], 'proposal_pi': obsDF['proposal_pi'][ind],
+                'obsID': obsDF['obsid'][ind]}
         p.patches('x', 'y', source=data, legend=ins,
                   fill_color=color, fill_alpha=0.1, line_color="white", line_width=0.5)
 
@@ -154,6 +153,13 @@ def app_caom():
                ("target_name", "@target_name"),
                ('proposal_pi', '@proposal_pi')]
     p.add_tools(HoverTool(tooltips=tooltip))
+
+    # Set up tap/click tool
+    # Only gets top one?
+    url = 'getproducts/@obsID'
+    p.add_tools(TapTool())
+    taptool = p.select(type=TapTool)
+    taptool.callback = OpenURL(url=url)
 
     p.legend.click_policy = "hide"
 
@@ -179,3 +185,8 @@ def parse_s_region(s_region):
 
     return {'ra': ra, 'dec': dec}
 
+
+@app_portal.route('/getproducts/<int:obsID>')
+def app_getproducts(obsID):
+    dataProductsByID = Observations.get_product_list(str(obsID))
+    return dataProductsByID.to_pandas().to_html()
