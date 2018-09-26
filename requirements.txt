@@ -1,0 +1,6 @@
+astropy>=2.0.2
+astroquery>=0.3.7
+numpy>=1.14.2
+pandas>=0.21.0
+flask>=0.12.2
+bokeh>=0.13.0
